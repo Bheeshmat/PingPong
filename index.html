@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>PingPong</title>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="600"></canvas>
+<script>
+
+const framesPerSecond = 30;
+
+var canvas = document.getElementById("canvas");
+var canvasContext = canvas.getContext("2d");
+var ballX = 50;
+var ballY = 50;
+var ballSpeedX = 10;
+var ballSpeedY = 4;
+
+
+// var paddle1X = 0;
+// var paddle1Y = (canvas.height/2) - (PADDLE_HEIGHT/2);
+
+// var paddle2X = canvas.width;
+// var paddle2Y = (canvas.height/2) - (PADDLE_HEIGHT/2);
+
+
+const PADDLE_HEIGHT = 100;
+const PADDLE_WIDTH = 100;
+
+
+window.onload = function(){
+  setInterval(function(){
+    moveEverything();
+    drawEverything();
+  }, 1000/framesPerSecond);
+};
+
+var moveEverything = function(){
+  // move the ball along the x axis
+  ballX += ballSpeedX;
+  if(ballX > canvas.width){
+    ballSpeedX = -ballSpeedX;
+  }50
+  if(ballX < (canvas.width - canvas.width)){
+    ballSpeedX = -ballSpeedX;
+  }
+  // move the ball along the y axis
+  ballY += ballSpeedY;
+  if(ballY > canvas.height){
+    ballSpeedY = -ballSpeedY;
+  }
+  if(ballY < (canvas.height - canvas.height)){
+    ballSpeedY = -ballSpeedY;
+  }
+}
+
+
+var drawEverything = function(){
+  //Draw the game field
+  drawRectangle(0, 0, canvas.width, canvas.height, "black");
+  //Draw the ball
+  drawCircle(ballX, ballY, 10, 'white');
+  //Draw the left paddle
+  // drawRectangle(paddle1X, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+  // //Draw the right paddle
+  // drawRectangle(paddle2X, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+};
+
+var drawRectangle = function(Xcoordinate, Ycoordinate, width, height, fillColor){
+  canvasContext.fillStyle = fillColor;
+  canvasContext.fillRect(Xcoordinate, Ycoordinate, width, height);
+};
+
+var drawCircle = function(Xcoordinate, Ycoordinate, radius, fillColor){
+  canvasContext.fillStyle = fillColor;
+  canvasContext.beginPath();
+  canvasContext.arc(Xcoordinate, Ycoordinate, radius, 0, Math.PI*2, true);
+  canvasContext.fill();
+};
+
+</script>
+</body>
+</html>
