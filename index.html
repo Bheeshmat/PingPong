@@ -1,77 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>PingPong</title>
+  <title>PingPong</title>
 </head>
 <body>
   <canvas id="canvas" width="800" height="600"></canvas>
 <script>
 
+// setup constants
 const framesPerSecond = 30;
+const PADDLE_HEIGHT = 100;
+const PADDLE_WIDTH = 10;
+const BALL_RADIUS = 10;
+const WINNING_SCORE = 3;
 
+// setup the canvas
 var canvas = document.getElementById("canvas");
 var canvasContext = canvas.getContext("2d");
-var ballX = 50;
-var ballY = 50;
+
+// setup balls position and speed
+var ballX = (canvas.height)/2;
+var ballY = (canvas.width)/2;
 var ballSpeedX = 10;
 var ballSpeedY = 4;
 
+// setup paddle's positions
+var paddle1X = 0;
+var paddle1Y = (canvas.height/2)-(PADDLE_HEIGHT/2);
+var paddle2X = (canvas.width-PADDLE_WIDTH);
+var paddle2Y = (canvas.height/2)-(PADDLE_HEIGHT/2);
 
-// var paddle1X = 0;
-// var paddle1Y = (canvas.height/2) - (PADDLE_HEIGHT/2);
+//setup player scores
 
-// var paddle2X = canvas.width;
-// var paddle2Y = (canvas.height/2) - (PADDLE_HEIGHT/2);
+var player1Score = 0;
+var player2Score = 0;
+var showingWinScreen = false;
 
-
-const PADDLE_HEIGHT = 100;
-const PADDLE_WIDTH = 100;
-
-
+// call moveEverything and drawEverything at intervals
 window.onload = function(){
   setInterval(function(){
+    // add event listeners for mousedown and mousemove
+    canvas.addEventListener("mousedown", handleMouseClick);
+    canvas.addEventListener("mousemove", function(evt){
+      var mousePosition = calculateMousePosition(evt);
+      paddle1Y = mousePosition.y - (PADDLE_HEIGHT/2);
+    })
+
     moveEverything();
     drawEverything();
+
   }, 1000/framesPerSecond);
 };
 
+var calculateMousePosition = function(evt){
+  mouseX = evt.clientX; //- retc.left - root.scrollLeft;
+  mouseY = evt.clientY; //- retc.top - root.scrollTop;
+  return {
+    x: mouseX,
+    y: mouseY
+  }
+}
+
+var computerMovement = function(){
+  var paddle2YCentre = paddle2Y + (PADDLE_HEIGHT/2);
+  if (paddle2YCentre < ballY - 35){
+    paddle2Y += 6;
+  }
+  if (paddle2YCentre > ballY + 35){
+    paddle2Y -= 6;
+  }
+}
+
+var ballReset = function (){
+  if(player1Score === WINNING_SCORE || player2Score === WINNING_SCORE){
+      showingWinScreen = true;
+  }
+  ballSpeedX = -ballSpeedX;
+  ballX = (canvas.width/2);
+  ballY = (canvas.height/2);
+}
+
+var handleMouseClick = function(evt){
+    if(showingWinScreen){
+      player1Score = 0;
+      player2Score = 0;
+      showingWinScreen = false;
+    }
+}
+
 var moveEverything = function(){
+  // return if one of the players has won and showing the win screen; if not, go ahead...
+  if (showingWinScreen){
+    return;
+  }
+  //Move the computer paddle
+  computerMovement();
   // move the ball along the x axis
   ballX += ballSpeedX;
-  if(ballX > canvas.width){
-    ballSpeedX = -ballSpeedX;
-  }50
-  if(ballX < (canvas.width - canvas.width)){
-    ballSpeedX = -ballSpeedX;
+  if(ballX > (canvas.width)){//-PADDLE_WIDTH-BALL_RADIUS
+    if(ballY < (paddle2Y + PADDLE_HEIGHT) && ballY > paddle2Y){
+      ballSpeedX = -ballSpeedX;
+    }else{
+      player1Score ++;
+      ballReset();
+    }
+  }
+  if(ballX < (0)){//+PADDLE_WIDTH+BALL_RADIUS
+    if(ballY < (paddle1Y + PADDLE_HEIGHT) && ballY > paddle1Y){
+      ballSpeedX = -ballSpeedX;
+      var deltaY = ballY - (paddle1Y + PADDLE_HEIGHT/2);
+      ballSpeedY = deltaY *0.25;
+    }else {
+      player2Score ++;
+      ballReset();
+    }
   }
   // move the ball along the y axis
   ballY += ballSpeedY;
-  if(ballY > canvas.height){
+  if(ballY > (canvas.height-BALL_RADIUS)){
     ballSpeedY = -ballSpeedY;
   }
-  if(ballY < (canvas.height - canvas.height)){
+  if(ballY < BALL_RADIUS) {
     ballSpeedY = -ballSpeedY;
   }
 }
 
-
 var drawEverything = function(){
   //Draw the game field
   drawRectangle(0, 0, canvas.width, canvas.height, "black");
+
+  if(showingWinScreen){
+    // show both player score and pause the game
+    canvasContext.fillStyle = 'white';
+    if(player1Score >= WINNING_SCORE){
+      drawText("Left Player Wins", 350, 200)
+    }else if(player2Score >= WINNING_SCORE){
+      drawText("Right Player Wins", 350, 200)
+      }
+    drawText("Click to continue", 375, 250, "15px Ariel");
+    return;
+  }
+
+  //Draw the net
+  drawNet();
   //Draw the ball
-  drawCircle(ballX, ballY, 10, 'white');
+  drawCircle(ballX, ballY, BALL_RADIUS, 'white');
   //Draw the left paddle
-  // drawRectangle(paddle1X, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
-  // //Draw the right paddle
-  // drawRectangle(paddle2X, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+  drawRectangle(paddle1X, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+  //Draw the right paddle
+  drawRectangle(paddle2X, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT, 'white');
+  //Draw player 1 score
+  drawText("Score: " + player1Score, 150, 50);
+  //Draw player 2 score
+  drawText("Score: " + player2Score, canvas.width - 250, 50);
 };
 
+// For drawing the net
+var drawNet = function(){
+  for(y=0; y<canvas.height; y+=40){
+    drawRectangle((canvas.width/2)-1, y, 2, 20, "white");
+  }
+}
+// use one function to draw text
+var drawText = function(string, Xcoordinate, Ycoordinate, font){
+  canvasContext.font = font || "20px Ariel";
+  canvasContext.fillText(string, Xcoordinate, Ycoordinate);
+}
+
+// use one function for all rectangles
 var drawRectangle = function(Xcoordinate, Ycoordinate, width, height, fillColor){
   canvasContext.fillStyle = fillColor;
   canvasContext.fillRect(Xcoordinate, Ycoordinate, width, height);
 };
 
-var drawCircle = function(Xcoordinate, Ycoordinate, radius, fillColor){
+// use one function for all circles
+  var drawCircle = function(Xcoordinate, Ycoordinate, radius, fillColor){
   canvasContext.fillStyle = fillColor;
   canvasContext.beginPath();
   canvasContext.arc(Xcoordinate, Ycoordinate, radius, 0, Math.PI*2, true);
